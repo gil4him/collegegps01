@@ -640,3 +640,36 @@ h1 {
   max-width: 360px;
   margin: 16px auto 0;
 }
+
+/* Accessibility: visible keyboard focus everywhere interactive */
+.chip-btn:focus-visible,
+.primary:focus-visible,
+.linklike:focus-visible,
+.seg:focus-visible,
+.add-card:focus-visible,
+.child-card-tappable:focus-visible,
+.stop-toggle:focus-visible {
+  outline: 2px solid #0071e3;
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .child-card-tappable {
+    transition: none;
+  }
+  .child-card-tappable:hover {
+    transform: none;
+  }
+}
+
+@media (max-width: 480px) {
+  .shell,
+  .shell-wide {
+    padding: 48px 16px;
+  }
+  .detail-actions {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 14px;
+  }
+}

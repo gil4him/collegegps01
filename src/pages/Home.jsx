@@ -40,6 +40,7 @@ function ChildCard({ child, plan, onOpen }) {
       onClick={onOpen}
       role="button"
       tabIndex={0}
+      aria-label={`Open ${child.nickname}'s note`}
       onKeyDown={(e) => e.key === "Enter" && onOpen()}
     >
       <header className="child-head">

@@ -35,7 +35,7 @@ export default function RoadView({ child, plan, onBack }) {
       )}
 
       <header className="detail-head">
-        <h1>The road ahead</h1>
+        <h1>{onBack ? "The road ahead" : `${child.nickname}’s road`}</h1>
         {next && (
           <p className="child-grade">
             Next turn: {next.title}

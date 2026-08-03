@@ -84,6 +84,11 @@ service cloud.firestore {
       allow create: if isSignedIn()
         && request.resource.data.tenantId == 'default'
         && isMemberOf(request.resource.data.householdId);
+      // Single-use: the redeeming student stamps usedByUid exactly once.
+      allow update: if isSignedIn()
+        && !('usedByUid' in resource.data)
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['usedByUid'])
+        && request.resource.data.usedByUid == request.auth.uid;
       allow delete: if isSuperadmin() || isMemberOf(resource.data.householdId);
     }
 

@@ -38,12 +38,16 @@ export async function claimWithCode(rawCode, uid) {
   const code = rawCode.trim().toUpperCase().replace(/[^A-Z0-9]/g, "");
   const snap = await getDoc(doc(db, "claimCodes", code));
   if (!snap.exists()) throw new Error("code-not-found");
-  const { householdId, childId } = snap.data();
+  const { householdId, childId, usedByUid } = snap.data();
+  if (usedByUid) throw new Error("code-used");
 
   await setDoc(doc(db, "claims", uid), { code, householdId, childId });
   await updateDoc(doc(db, "households", householdId), {
     studentUids: arrayUnion(uid),
   });
+  // Stamp the code used (rules allow this exactly once) so it can't link a
+  // second account later.
+  await updateDoc(doc(db, "claimCodes", code), { usedByUid: uid });
   await updateDoc(doc(db, "children", childId), { claimedByUid: uid });
   await updateDoc(doc(db, "users", uid), { householdId });
   return { householdId, childId };

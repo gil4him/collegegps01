@@ -38,6 +38,8 @@ export default function StudentView({ children, plans }) {
       setError(
         err.message === "code-not-found"
           ? "That code didn't match — check it with your parent and try again."
+          : err.message === "code-used"
+          ? "That code was already used. Ask your parent to make a fresh one."
           : "Couldn't claim just now — please try again."
       );
     } finally {
