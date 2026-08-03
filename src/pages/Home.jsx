@@ -1,10 +1,13 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useAuth } from "../auth/AuthProvider.jsx";
 import { signOut } from "../auth/account.js";
-import { subscribeChildren, subscribePlans } from "../lib/children.js";
+import { regeneratePlan, subscribeChildren, subscribePlans } from "../lib/children.js";
 import { subscribeMoneyProfile } from "../lib/profiles.js";
+import { subscribeTodos } from "../lib/ask.js";
 import { gradeFromGradYear } from "../engines/milestones/grade.js";
-import { verdictFor } from "../engines/verdict/verdict.js";
+import { inputsHashOf, verdictFor } from "../engines/verdict/verdict.js";
+import AskBubble from "../components/AskBubble.jsx";
+import ConsultantList from "../components/ConsultantList.jsx";
 import { STATES } from "../data/dataset.js";
 import { LOCALES, prettyDate, useI18n } from "../i18n/index.jsx";
 import { localizePlan } from "../i18n/content.js";
@@ -116,27 +119,50 @@ export default function Home() {
   const [children, setChildren] = useState(null);
   const [plans, setPlans] = useState({});
   const [money, setMoney] = useState(null);
+  const [todos, setTodos] = useState([]);
   const [adding, setAdding] = useState(false);
   const [view, setView] = useState({ name: "dashboard", childId: null });
   const householdId = profile?.householdId;
+  const regenerating = useRef(new Set());
 
   useEffect(() => {
     if (!householdId) return undefined;
     const u1 = subscribeChildren(householdId, setChildren);
     const u2 = subscribePlans(householdId, setPlans);
     const u3 = subscribeMoneyProfile(householdId, setMoney);
+    const u4 = subscribeTodos(householdId, setTodos);
     return () => {
       u1();
       u2();
       u3();
+      u4();
     };
   }, [householdId]);
+
+  // Auto-regen: if a child's inputs changed outside the sharpen flow (the
+  // Ask consultant patches bands server-side), the stored plan's inputsHash
+  // no longer matches — rebuild it, preserving done marks.
+  useEffect(() => {
+    if (!children) return;
+    for (const child of children) {
+      const plan = plans[child.id];
+      if (!plan || regenerating.current.has(child.id)) continue;
+      if (plan.inputsHash === inputsHashOf(child)) continue;
+      regenerating.current.add(child.id);
+      regeneratePlan(child, plan, new Date()).finally(() =>
+        regenerating.current.delete(child.id)
+      );
+    }
+  }, [children, plans]);
+
+  const bubble = householdId ? <AskBubble householdId={householdId} children={children || []} /> : null;
 
   if (profile && profile.role === "student") {
     return (
       <main className="shell shell-wide">
         <Topbar />
         <StudentView children={children} plans={plans} />
+        {bubble}
       </main>
     );
   }
@@ -159,12 +185,14 @@ export default function Home() {
             child={selected}
             plan={plans[selected.id]}
             money={money}
+            todos={todos}
             householdId={householdId}
             tenantId={profile.tenantId || "default"}
             onBack={() => setView({ name: "dashboard", childId: null })}
             onRoad={() => setView({ name: "road", childId: selected.id })}
           />
         )}
+        {bubble}
       </main>
     );
   }
@@ -197,20 +225,24 @@ export default function Home() {
       )}
 
       {children && children.length > 0 && !adding && (
-        <div className="cards-grid">
-          {children.map((c) => (
-            <ChildCard
-              key={c.id}
-              child={c}
-              plan={plans[c.id]}
-              onOpen={() => setView({ name: "detail", childId: c.id })}
-            />
-          ))}
-          <button className="add-card" onClick={() => setAdding(true)}>
-            {t("home.addAnother")}
-          </button>
-        </div>
+        <>
+          <div className="cards-grid">
+            {children.map((c) => (
+              <ChildCard
+                key={c.id}
+                child={c}
+                plan={plans[c.id]}
+                onOpen={() => setView({ name: "detail", childId: c.id })}
+              />
+            ))}
+            <button className="add-card" onClick={() => setAdding(true)}>
+              {t("home.addAnother")}
+            </button>
+          </div>
+          <ConsultantList todos={todos} children={children} />
+        </>
       )}
+      {bubble}
     </main>
   );
 }

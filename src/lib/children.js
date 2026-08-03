@@ -65,22 +65,34 @@ function subscribeWithRetry(q, onData) {
   };
 }
 
-// A "sharpen this" answer changed the child's inputs: save the patch and
-// regenerate the plan in one batch, preserving any done marks by milestone
-// id. Deterministic: inputsHash changes, milestones re-derive.
-export async function updateChildInputs(child, oldPlan, patch, now) {
-  const updated = { ...child, ...patch };
-  const plan = generatePlan(updated, now);
+function regeneratedPlanFor(child, oldPlan, now) {
+  const plan = generatePlan(child, now);
   const doneIds = new Set(
     (oldPlan?.milestones || []).filter((m) => m.status === "done").map((m) => m.id)
   );
   plan.milestones = plan.milestones.map((m) =>
     doneIds.has(m.id) ? { ...m, status: "done" } : m
   );
+  return plan;
+}
+
+// A "sharpen this" answer changed the child's inputs: save the patch and
+// regenerate the plan in one batch, preserving any done marks by milestone
+// id. Deterministic: inputsHash changes, milestones re-derive.
+export async function updateChildInputs(child, oldPlan, patch, now) {
+  const plan = regeneratedPlanFor({ ...child, ...patch }, oldPlan, now);
   const batch = writeBatch(db);
   batch.update(doc(db, "children", child.id), patch);
   batch.update(doc(db, "plans", child.id), { ...plan, generatedAt: serverTimestamp() });
   await batch.commit();
+}
+
+// The child's inputs changed OUTSIDE the sharpen flow (e.g. the Ask
+// consultant patched a band server-side): bring the stored plan back in
+// sync. Plan-only write; done marks preserved.
+export async function regeneratePlan(child, oldPlan, now) {
+  const plan = regeneratedPlanFor(child, oldPlan, now);
+  await updateDoc(doc(db, "plans", child.id), { ...plan, generatedAt: serverTimestamp() });
 }
 
 // Mark a stop done (or not) on the stored plan.

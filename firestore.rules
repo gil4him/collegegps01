@@ -150,6 +150,36 @@ service cloud.firestore {
       allow read, write: if isSuperadmin() || isMemberOf(householdId);
     }
 
+    // Ask consultant: private per-user thread. The server (Admin SDK) writes
+    // both turns; clients only read their own thread. The ask_chats parent
+    // doc (daily counter) has no rule → server-only.
+    match /households/{householdId}/ask_chats/{chatUid}/messages/{mid} {
+      allow read: if isSelf(chatUid) && isMemberOf(householdId);
+      allow write: if false;
+    }
+
+    // Consultant memos: the family notebook. Server-written, member-readable.
+    match /households/{householdId}/memos/{memoId} {
+      allow read: if isSuperadmin() || isMemberOf(householdId);
+      allow write: if false;
+    }
+
+    // Usage counters (monthly AI message counts). Server-written.
+    match /households/{householdId}/usage/{month} {
+      allow read: if isSuperadmin() || isMemberOf(householdId);
+      allow write: if false;
+    }
+
+    // Consultant to-dos: server-created; members read and check them off
+    // (status is the only client-mutable field).
+    match /todos/{todoId} {
+      allow read: if isSuperadmin() || isMemberOf(resource.data.householdId);
+      allow update: if isMemberOf(resource.data.householdId)
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status'])
+        && request.resource.data.status in ['open', 'done'];
+      allow create, delete: if isSuperadmin();
+    }
+
     // Everything else: denied.
     match /{document=**} {
       allow read, write: if false;

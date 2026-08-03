@@ -798,3 +798,203 @@ h1 {
   text-decoration: none;
   white-space: nowrap;
 }
+
+/* Ask bubble — always on screen */
+.ask-launcher {
+  position: fixed;
+  right: 24px;
+  bottom: 24px;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  border: none;
+  background: #0071e3;
+  color: #ffffff;
+  font-size: 1.5rem;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.18);
+  z-index: 60;
+}
+
+.ask-launcher:focus-visible {
+  outline: 2px solid #0071e3;
+  outline-offset: 3px;
+}
+
+.ask-panel {
+  position: fixed;
+  right: 24px;
+  bottom: 92px;
+  width: min(380px, calc(100vw - 32px));
+  height: min(560px, calc(100vh - 130px));
+  background: #ffffff;
+  border: 1px solid #e5e5ea;
+  border-radius: 18px;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.16);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  z-index: 60;
+  text-align: left;
+}
+
+.ask-head {
+  padding: 14px 16px 10px;
+  border-bottom: 1px solid #f0f0f2;
+}
+
+.ask-title {
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+.ask-focus {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.ask-chip {
+  font-size: 0.75rem;
+  padding: 4px 10px;
+}
+
+.ask-thread {
+  flex: 1;
+  overflow-y: auto;
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.ask-intro {
+  font-size: 0.875rem;
+  color: #6e6e73;
+  line-height: 1.5;
+}
+
+.ask-msg {
+  max-width: 88%;
+  padding: 9px 13px;
+  border-radius: 14px;
+  font-size: 0.9375rem;
+  line-height: 1.45;
+  white-space: pre-wrap;
+}
+
+.ask-msg-user {
+  align-self: flex-end;
+  background: #0071e3;
+  color: #ffffff;
+  border-bottom-right-radius: 4px;
+}
+
+.ask-msg-ai {
+  align-self: flex-start;
+  background: #f5f5f7;
+  color: #1d1d1f;
+  border-bottom-left-radius: 4px;
+}
+
+.ask-todo-note {
+  display: block;
+  margin-top: 6px;
+  font-size: 0.75rem;
+  color: #1a7f37;
+  font-weight: 600;
+}
+
+.ask-typing {
+  font-size: 0.875rem;
+  color: #6e6e73;
+}
+
+.ask-inputrow {
+  display: flex;
+  gap: 8px;
+  padding: 10px 12px;
+  border-top: 1px solid #f0f0f2;
+}
+
+.ask-input {
+  flex: 1;
+  font: inherit;
+  font-size: 0.9375rem;
+  padding: 9px 12px;
+  border: 1px solid #d2d2d7;
+  border-radius: 10px;
+}
+
+.ask-send {
+  padding: 9px 16px;
+}
+
+@media (max-width: 480px) {
+  .ask-panel {
+    right: 8px;
+    left: 8px;
+    width: auto;
+    bottom: 84px;
+    height: min(70vh, 560px);
+  }
+}
+
+/* Consultant's to-do list */
+.consult-list {
+  max-width: 620px;
+  border-top: 1px solid #e5e5ea;
+  padding-top: 24px;
+  margin: 32px 0;
+}
+
+.consult-items {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 12px;
+}
+
+.consult-check {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  cursor: pointer;
+}
+
+.consult-check input {
+  margin-top: 4px;
+  accent-color: #0071e3;
+}
+
+.consult-body {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.consult-title {
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+.consult-due {
+  font-weight: 400;
+  color: #6e6e73;
+  font-size: 0.8125rem;
+}
+
+.consult-why {
+  font-size: 0.875rem;
+  color: #6e6e73;
+  line-height: 1.4;
+}
+
+.consult-done .consult-title,
+.consult-done .consult-why {
+  color: #a1a1a6;
+  text-decoration: line-through;
+}

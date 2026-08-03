@@ -9,6 +9,7 @@ import { updateMoneyProfile } from "../lib/profiles.js";
 import { createClaimCode } from "../lib/claims.js";
 import { useI18n } from "../i18n/index.jsx";
 import { bandLabel, localizePlan } from "../i18n/content.js";
+import ConsultantList from "../components/ConsultantList.jsx";
 
 function SharpenRow({ label, payoff, options, value, onPick, busy }) {
   return (
@@ -74,7 +75,7 @@ function AffordabilityPanel({ child, money }) {
 
 // Card detail = the counselor's note (brief: NOT more widgets). Serif voice,
 // two actions, then the sharpen prompts with visible payoff.
-export default function ChildDetail({ child, plan, money, householdId, tenantId, onBack, onRoad }) {
+export default function ChildDetail({ child, plan, money, todos, householdId, tenantId, onBack, onRoad }) {
   const { locale, t } = useI18n();
   const now = new Date();
   const [busy, setBusy] = useState(false);
@@ -154,6 +155,8 @@ export default function ChildDetail({ child, plan, money, householdId, tenantId,
           {t("detail.seeRoad")}
         </button>
       </div>
+
+      <ConsultantList todos={todos} childId={child.id} />
 
       <AffordabilityPanel child={child} money={money} />
 
