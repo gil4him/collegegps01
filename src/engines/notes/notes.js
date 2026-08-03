@@ -68,7 +68,11 @@ export function counselorNote(child, plan, v, now) {
   let p2;
   if (next) {
     const when = next.date >= today ? `by ${prettyDate(next.date)}` : "as the first catch-up";
-    p2 = `The next turn: ${next.title.charAt(0).toLowerCase()}${next.title.slice(1)}, ${when}. ${next.why}`;
+    // Sentence-flow the title, but never lowercase an acronym (FAFSA, SAT…).
+    const title = /^[A-Z]{2}/.test(next.title)
+      ? next.title
+      : next.title.charAt(0).toLowerCase() + next.title.slice(1);
+    p2 = `The next turn: ${title}, ${when}. ${next.why}`;
     if (child.testStatus === "done" && grade >= 11) {
       p2 += ` With testing behind ${name}, attention shifts fully to the story and the paperwork — a genuinely lighter load.`;
     }
