@@ -179,3 +179,161 @@ h1 {
   color: #0071e3;
   text-decoration: none;
 }
+
+.shell-wide {
+  max-width: 960px;
+  text-align: left;
+}
+
+.shell-wide .topbar {
+  margin-bottom: 48px;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 48px 0;
+}
+
+.empty-state .primary {
+  margin-top: 28px;
+  padding: 12px 28px;
+}
+
+.modal-center {
+  max-width: 400px;
+  margin: 0 auto;
+}
+
+.card-title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+.field select {
+  font: inherit;
+  padding: 10px 12px;
+  border: 1px solid #d2d2d7;
+  border-radius: 10px;
+  background: #ffffff;
+}
+
+.cards-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 20px;
+}
+
+.child-card {
+  background: #ffffff;
+  border: 1px solid #e5e5ea;
+  border-radius: 18px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.child-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--accent, #0071e3);
+  color: #ffffff;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.child-name {
+  font-size: 1.0625rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+.child-grade {
+  font-size: 0.8125rem;
+  color: #6e6e73;
+}
+
+.pill {
+  margin-left: auto;
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+
+.pill-ok {
+  background: #e8f6ec;
+  color: #1a7f37;
+}
+
+.pill-warn {
+  background: #fff4e5;
+  color: #b25e09;
+}
+
+.chip {
+  font-size: 0.75rem;
+  color: #6e6e73;
+  background: #f5f5f7;
+  border-radius: 999px;
+  padding: 4px 10px;
+  align-self: flex-start;
+}
+
+.next-thing {
+  border-left: 3px solid var(--accent, #0071e3);
+  padding-left: 12px;
+}
+
+.next-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #6e6e73;
+}
+
+.next-title {
+  margin-top: 4px;
+  font-weight: 600;
+  line-height: 1.35;
+}
+
+.next-why {
+  margin-top: 4px;
+  font-size: 0.875rem;
+  color: #6e6e73;
+  line-height: 1.45;
+}
+
+.card-foot {
+  font-size: 0.8125rem;
+  color: #6e6e73;
+  margin-top: auto;
+}
+
+.add-card {
+  font: inherit;
+  color: #0071e3;
+  background: none;
+  border: 2px dashed #d2d2d7;
+  border-radius: 18px;
+  min-height: 160px;
+  cursor: pointer;
+}
+
+.add-card:hover {
+  border-color: #0071e3;
+}
