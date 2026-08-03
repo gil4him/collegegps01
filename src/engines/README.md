@@ -7,11 +7,13 @@ Deterministic logic only. Rules for every module in here:
 - **Ported modules keep their public interface** and carry an origin header: `// Ported from collegeapp01 <path> @ <commit> — keep public interface.`
 - **Every module has a smoke test** (`*.test.js`, run with `npm test`).
 
-Planned layout (Slice 2, per the extraction doc in collegeapp01
+Layout (ported in Slice 2 — see `docs/ENGINES.md` for the plain-English
+inventory, and the extraction doc in collegeapp01
 `md_file_from_Macbook/claude-code-prompt_engine-extraction-for-collegegps01.md`):
 
-- `milestones/` — milestone calendar, grade context, selection (port + greenfield dated playbook)
+- `milestones/` — milestone calendar, grade context, this-week selection
 - `finaid/` — SAI estimator (`finaid.js`) + Tier-2 what-if (`portfolio.js`)
-- `fit/` — recommend/buildPlan engine, readiness, Scorecard fetch
+- `fit/` — recommend/buildPlan engine, readiness, Scorecard fetch, fit helpers
 - `answers/` — deriveAnswers + budget/income bands
-- `verdict/` — greenfield: On-track verdict + One Next Thing
+- `entitlements/` — free/paid seam (limits + gate; no paywall in v1)
+- `verdict/` — greenfield, not yet built: On-track verdict + One Next Thing
