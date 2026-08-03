@@ -11,26 +11,29 @@
 import { getGradeContext } from "../milestones/grade.js";
 import { NOTE_PACKS } from "./notes.i18n.js";
 
-export const NOTES_VERSION = "notes-v2"; // v2: locale-aware packs
+export const NOTES_VERSION = "notes-v3"; // v3: bullet summary opening
 
-// counselorNote(child, plan, verdict, now, locale?) → { paragraphs: [2–3] }
+// counselorNote(child, plan, verdict, now, locale?) →
+//   { summary: [3–4 plain bullets], paragraphs: [2 prose paragraphs] }
+// The summary answers "where are we?" at a glance (owner request: simple
+// terms, bullet points); the prose keeps the counselor voice for the next
+// turn and the quiet money note.
 export function counselorNote(child, plan, v, now, locale = "en") {
   const pack = NOTE_PACKS[locale] || NOTE_PACKS.en;
   const ctx = getGradeContext(child.gradYear, now);
   const name = child.nickname;
   const grade = Math.max(9, Math.min(12, ctx.grade));
   const today = now.toISOString().slice(0, 10);
-  const sem = pack.semester[ctx.semester] || pack.semester.fall;
-  const flavor = pack.flavor[grade];
+  const semShort = pack.semesterShort[ctx.semester] || pack.semesterShort.fall;
 
-  // P1 — where you are (verdict first: anxiety relief, then direction).
-  let p1;
-  if (v.status === "onTrack") {
-    p1 = pack.p1OnTrack(name, grade, sem, flavor);
-  } else {
-    const n = v.milestones.filter((m) => m.state === "overdue").length;
-    p1 = pack.p1Needs(name, grade, sem, n, flavor);
-  }
+  // Opening summary — simple bullets: where, verdict, what this year is, load.
+  const overdue = v.milestones.filter((m) => m.state === "overdue").length;
+  const summary = [
+    pack.bGrade(grade, semShort),
+    v.status === "onTrack" ? pack.bOnTrack : pack.bNeeds(overdue),
+    pack.bFlavor[grade],
+  ];
+  if (v.dueThisSemester != null) summary.push(pack.bSemester(v.dueThisSemester));
 
   // P2 — the next turn and why it matters.
   const next = v.oneNextThing;
@@ -46,7 +49,7 @@ export function counselorNote(child, plan, v, now, locale = "en") {
   // P3 — the quiet money note.
   const p3 = moneyParagraph(pack, name, plan, today);
 
-  return { version: NOTES_VERSION, locale, paragraphs: [p1, p2, p3] };
+  return { version: NOTES_VERSION, locale, summary, paragraphs: [p2, p3] };
 }
 
 function moneyParagraph(pack, name, plan, today) {

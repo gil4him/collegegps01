@@ -136,6 +136,11 @@ export default function ChildDetail({ child, plan, money, householdId, tenantId,
       </header>
 
       <section className="note" lang={locale}>
+        <ul className="note-summary">
+          {note.summary.map((b, i) => (
+            <li key={i}>{b}</li>
+          ))}
+        </ul>
         {note.paragraphs.map((p, i) => (
           <p key={i}>{p}</p>
         ))}

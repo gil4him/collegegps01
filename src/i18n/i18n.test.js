@@ -72,8 +72,9 @@ describe("localized counselor note", () => {
       const a = counselorNote(CHILD, localizePlan(plan, loc), v, NOW, loc);
       const b = counselorNote(CHILD, localizePlan(plan, loc), v, NOW, loc);
       expect(a).toEqual(b);
-      expect(a.paragraphs.length).toBeGreaterThanOrEqual(2);
-      seen.add(a.paragraphs.join("|"));
+      expect(a.summary.length).toBeGreaterThanOrEqual(3);
+      expect(a.paragraphs.length).toBe(2);
+      seen.add([...a.summary, ...a.paragraphs].join("|"));
     }
     expect(seen.size).toBe(5); // all five languages produce distinct notes
   });

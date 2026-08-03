@@ -11,41 +11,43 @@ function noteFor(child, now = NOW) {
   return counselorNote(child, plan, v, now);
 }
 
-describe("counselor note (deterministic voice)", () => {
-  test("same inputs → identical note, 2–3 paragraphs", () => {
+describe("counselor note (bullet summary + deterministic voice)", () => {
+  test("same inputs → identical note; bullets + 2 paragraphs", () => {
     const a = noteFor(CHILD);
     const b = noteFor(CHILD);
     expect(a).toEqual(b);
-    expect(a.paragraphs.length).toBeGreaterThanOrEqual(2);
-    expect(a.paragraphs.length).toBeLessThanOrEqual(3);
+    expect(a.summary.length).toBeGreaterThanOrEqual(3);
+    expect(a.summary.length).toBeLessThanOrEqual(4);
+    expect(a.paragraphs.length).toBe(2);
   });
 
-  test("on-track note relieves first, then directs", () => {
-    const [p1, p2] = noteFor(CHILD).paragraphs;
-    expect(p1).toContain("on track");
-    expect(p1).toContain("tenth grade");
-    expect(p2).toContain("The next turn:");
+  test("summary relieves first, in plain terms", () => {
+    const { summary, paragraphs } = noteFor(CHILD);
+    expect(summary[0]).toContain("Grade 10");
+    expect(summary[1]).toMatch(/On track/);
+    expect(paragraphs[0]).toContain("The next turn:");
   });
 
   test("the money note is woven in for a sophomore", () => {
-    const p3 = noteFor(CHILD).paragraphs[2];
-    expect(p3).toMatch(/FAFSA|money/i);
+    const p = noteFor(CHILD).paragraphs[1];
+    expect(p).toMatch(/FAFSA|money/i);
   });
 
-  test("needs-attention note stays calm and specific", () => {
+  test("needs-attention summary stays calm and specific", () => {
     const early = { ...CHILD, signupDate: "2026-01-01" };
     const plan = generatePlan(early, NOW);
     const v = verdictFor(plan, early, NOW);
     expect(v.status).toBe("needsAttention");
-    const [p1] = counselorNote(early, plan, v, NOW).paragraphs;
-    expect(p1).toMatch(/come due/);
-    expect(p1).not.toMatch(/behind|failing|emergency/i);
+    const { summary } = counselorNote(early, plan, v, NOW);
+    expect(summary[1]).toMatch(/came due/);
+    expect(summary.join(" ")).not.toMatch(/behind|failing|emergency/i);
   });
 
   test("different refinements → different note", () => {
     const now = new Date("2026-09-10T12:00:00Z");
     const a = { nickname: "J", gradYear: 2028, state: "CA", zip: "90210", signupDate: "2026-09-10" };
     const b = { ...a, testStatus: "done" };
-    expect(noteFor(a, now).paragraphs.join()).not.toBe(noteFor(b, now).paragraphs.join());
+    const flat = (n) => [...n.summary, ...n.paragraphs].join("|");
+    expect(flat(noteFor(a, now))).not.toBe(flat(noteFor(b, now)));
   });
 });

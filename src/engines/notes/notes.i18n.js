@@ -15,6 +15,18 @@ const ORDINAL_EN = { 9: "ninth", 10: "tenth", 11: "eleventh", 12: "twelfth" };
 export const NOTE_PACKS = {
   en: {
     date: dEN,
+    // Opening summary — simple bullets, plain terms (owner request 2026-08).
+    bGrade: (grade, sem) => `Grade ${grade} · ${sem}`,
+    bOnTrack: "On track — nothing missed, nothing urgent",
+    bNeeds: (n) => (n === 1 ? "1 thing came due recently — easy to recover" : `${n} things came due recently — all recoverable`),
+    bSemester: (n) => (n === 1 ? "1 thing to do this semester" : `${n} things to do this semester`),
+    bFlavor: {
+      9: "This year: build habits, explore honestly",
+      10: "This year: go deeper, first test signals",
+      11: "The year colleges look at hardest",
+      12: "Execution season: deadlines, essays, money paperwork",
+    },
+    semesterShort: { fall: "fall semester", spring: "spring semester", summer: "summer" },
     flavor: {
       9: "Ninth grade is about habits and honest exploration more than achievements — colleges won't see most of this year, but everything later builds on it.",
       10: "Tenth grade is the quiet-but-important year: depth starts to beat breadth, and the first real signals — course rigor, a practice test — take shape.",
@@ -42,6 +54,17 @@ export const NOTE_PACKS = {
 
   ko: {
     date: dKO,
+    bGrade: (grade, sem) => `${grade}학년 · ${sem}`,
+    bOnTrack: "순조로워요 — 놓친 것도, 급한 것도 없어요",
+    bNeeds: (n) => `최근 기한 지난 일 ${n}건 — 모두 따라잡을 수 있어요`,
+    bSemester: (n) => `이번 학기 할 일 ${n}개`,
+    bFlavor: {
+      9: "올해는 습관 만들기와 솔직한 탐색의 해",
+      10: "올해는 더 깊게 — 첫 시험 신호가 오는 해",
+      11: "대학이 가장 자세히 보는 해",
+      12: "실행의 계절 — 마감·에세이·학자금 서류",
+    },
+    semesterShort: { fall: "가을 학기", spring: "봄 학기", summer: "여름 방학" },
     flavor: {
       9: "9학년은 성과보다 습관과 솔직한 탐색의 해예요. 대학이 올해를 직접 보진 않지만, 이후의 모든 것이 여기서 시작됩니다.",
       10: "10학년은 조용하지만 중요한 해예요. 넓이보다 깊이가 중요해지고, 과목 난이도나 연습 시험 같은 첫 신호들이 모양을 갖춥니다.",
@@ -66,6 +89,17 @@ export const NOTE_PACKS = {
 
   es: {
     date: dES,
+    bGrade: (grade, sem) => `Grado ${grade} · ${sem}`,
+    bOnTrack: "Va bien — nada perdido, nada urgente",
+    bNeeds: (n) => (n === 1 ? "1 cosa venció hace poco — se puede recuperar" : `${n} cosas vencieron hace poco — todas recuperables`),
+    bSemester: (n) => (n === 1 ? "1 cosa por hacer este semestre" : `${n} cosas por hacer este semestre`),
+    bFlavor: {
+      9: "Este año: hábitos y exploración honesta",
+      10: "Este año: profundizar; primeras señales de exámenes",
+      11: "El año que las universidades miran más",
+      12: "Temporada de ejecución: fechas, ensayos, papeleo de dinero",
+    },
+    semesterShort: { fall: "semestre de otoño", spring: "semestre de primavera", summer: "verano" },
     flavor: {
       9: "Noveno grado se trata de hábitos y exploración honesta más que de logros — las universidades no verán la mayor parte de este año, pero todo lo que sigue se construye sobre él.",
       10: "Décimo es el año callado pero importante: la profundidad empieza a ganarle a la variedad, y aparecen las primeras señales reales — el rigor de las materias, un examen de práctica.",
@@ -93,6 +127,17 @@ export const NOTE_PACKS = {
 
   zh: {
     date: dZH,
+    bGrade: (grade, sem) => `${grade} 年级 · ${sem}`,
+    bOnTrack: "进展顺利 — 没有遗漏，没有急事",
+    bNeeds: (n) => `最近 ${n} 件事到期 — 都来得及补`,
+    bSemester: (n) => `本学期要做 ${n} 件事`,
+    bFlavor: {
+      9: "今年重点：养习惯、真诚探索",
+      10: "今年重点：做深一点，迎来首批考试信号",
+      11: "大学看得最仔细的一年",
+      12: "执行季：截止日、文书、资金材料",
+    },
+    semesterShort: { fall: "秋季学期", spring: "春季学期", summer: "暑期" },
     flavor: {
       9: "9 年级重在习惯和真诚的探索，而不是成绩单 — 大学不会直接看到这一年，但之后的一切都建立在它之上。",
       10: "10 年级安静却重要：深度开始胜过广度，第一批真正的信号 — 课程强度、一次练习考试 — 正在成形。",
@@ -117,6 +162,17 @@ export const NOTE_PACKS = {
 
   ja: {
     date: dZH, // 月/日 formatting is shared with Chinese (10月1日)
+    bGrade: (grade, sem) => `${grade}年生 · ${sem}`,
+    bOnTrack: "順調です — 見落としも急ぎもありません",
+    bNeeds: (n) => `最近期日を過ぎたもの ${n}件 — すべて取り戻せます`,
+    bSemester: (n) => `今学期にやること ${n}件`,
+    bFlavor: {
+      9: "今年は習慣づくりと素直な探索の年",
+      10: "今年は深めていく年 — 最初の試験シグナルも",
+      11: "大学が最も注意深く見る年",
+      12: "実行の季節 — 締切・エッセイ・お金の書類",
+    },
+    semesterShort: { fall: "秋学期", spring: "春学期", summer: "夏休み" },
     flavor: {
       9: "9年生は成果よりも、習慣づくりと素直な探索の年です。大学がこの1年を直接見ることはほぼありませんが、この先のすべてがここから積み上がります。",
       10: "10年生は静かながら大事な年。広さより深さが効き始め、科目の難度や練習テストといった最初のシグナルが形になります。",

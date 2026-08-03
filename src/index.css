@@ -411,6 +411,27 @@ h1 {
   font-weight: 600;
 }
 
+.note-summary {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 2px 0 6px;
+}
+
+.note-summary li {
+  padding-left: 22px;
+  position: relative;
+  font-size: 1.0625rem;
+}
+
+.note-summary li::before {
+  content: "–";
+  position: absolute;
+  left: 4px;
+  color: #a1a1a6;
+}
+
 /* The counselor's note — the ONLY serif surface. It is the product's voice. */
 .note {
   max-width: 620px;
