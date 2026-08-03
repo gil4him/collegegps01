@@ -3,7 +3,7 @@ import { recommend, buildPlan, MODEL_VERSION } from "./engine.js";
 import { computeReadiness, READINESS_VERSION } from "./readiness.js";
 import { scorecardUrl, mapScorecardRow, fetchScorecardCandidates } from "./scorecard.js";
 import { SAMPLE, STATES, INCOME_SUF } from "../../data/dataset.js";
-import { ENRICH } from "../../data/dataset_enrichment.js";
+import { ENRICH } from "college-engine/engines/fit/dataset_enrichment";
 
 const PARENT = { state: "CA", incomeBand: "$75–110k", annualBudget: 30000 };
 const STUDENT = { state: "CA", gpa: 3.7, gpaScale: "4.0", testOptional: true, majors: ["Engineering"] };
