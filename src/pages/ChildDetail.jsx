@@ -2,7 +2,14 @@ import { useMemo, useState } from "react";
 import { verdictFor } from "../engines/verdict/verdict.js";
 import { counselorNote } from "../engines/notes/notes.js";
 import { gradeFromGradYear } from "../engines/milestones/grade.js";
+import { affordabilityFor, SAVINGS_BANDS } from "../engines/affordability/affordability.js";
+import { INCOME_BANDS, BUDGET_BANDS } from "../engines/answers/answers.js";
 import { updateChildInputs } from "../lib/children.js";
+import { updateMoneyProfile } from "../lib/profiles.js";
+
+const INCOME_OPTIONS = INCOME_BANDS.map((b) => ({ value: b, label: b }));
+const BUDGET_OPTIONS = Object.keys(BUDGET_BANDS).map((b) => ({ value: b, label: b }));
+const SAVINGS_OPTIONS = Object.keys(SAVINGS_BANDS).map((b) => ({ value: b, label: b }));
 
 const GPA_BANDS = [
   { value: "3.7plus", label: "3.7+" },
@@ -39,9 +46,49 @@ function SharpenRow({ label, payoff, options, value, onPick, busy }) {
   );
 }
 
+function money$(n) {
+  return "$" + Math.round(n).toLocaleString();
+}
+
+function AffordabilityPanel({ child, money }) {
+  const a = useMemo(() => affordabilityFor(child, money), [child, money]);
+  if (!a.available) return null;
+  return (
+    <section className="afford">
+      <h2 className="section-title">Affordability — {a.stateName}</h2>
+      {a.typical && (
+        <p className="afford-basis">Based on a typical {a.stateName} family — answer the money bands below to make this yours.</p>
+      )}
+      <p className="afford-range">
+        Net price at {a.schoolCount} in-state colleges:{" "}
+        <strong>
+          {money$(a.netLow)}–{money$(a.netHigh)}
+        </strong>{" "}
+        a year (median {money$(a.netMedian)}).
+      </p>
+      {a.withinBudget != null && (
+        <p className="afford-range">
+          Around your budget band: <strong>{a.withinBudget} of {a.schoolCount}</strong> in-state
+          colleges land at or under {money$(a.budgetMid)} a year.
+        </p>
+      )}
+      {a.sai && (
+        <p className="afford-range">
+          Aid math: your Student Aid Index likely falls around{" "}
+          <strong>
+            {money$(a.sai.low)}–{money$(a.sai.high)}
+          </strong>
+          . Colleges use it to size aid — lower means more need-based help.
+        </p>
+      )}
+      <p className="afford-fineprint">Planning estimates from public IPEDS data — not financial advice.</p>
+    </section>
+  );
+}
+
 // Card detail = the counselor's note (brief: NOT more widgets). Serif voice,
 // two actions, then the sharpen prompts with visible payoff.
-export default function ChildDetail({ child, plan, onBack, onRoad }) {
+export default function ChildDetail({ child, plan, money, householdId, tenantId, onBack, onRoad }) {
   const now = new Date();
   const [busy, setBusy] = useState(false);
   const v = useMemo(() => (plan ? verdictFor(plan, child, now) : null), [plan, child]);
@@ -91,6 +138,8 @@ export default function ChildDetail({ child, plan, onBack, onRoad }) {
         </button>
       </div>
 
+      <AffordabilityPanel child={child} money={money} />
+
       <section className="sharpen">
         <h2 className="section-title">Sharpen this</h2>
         <p className="sharpen-sub">Each answer updates {child.nickname}&rsquo;s road instantly.</p>
@@ -108,6 +157,30 @@ export default function ChildDetail({ child, plan, onBack, onRoad }) {
           options={TEST_STATUS}
           value={child.testStatus}
           onPick={(testStatus) => sharpen({ testStatus })}
+          busy={busy}
+        />
+        <SharpenRow
+          label="Household income band"
+          payoff="narrows the affordability range · shared across your children"
+          options={INCOME_OPTIONS}
+          value={money?.incomeBand}
+          onPick={(incomeBand) => updateMoneyProfile(householdId, tenantId, { incomeBand })}
+          busy={busy}
+        />
+        <SharpenRow
+          label="What could you pay per year?"
+          payoff="shows how many colleges fit your budget"
+          options={BUDGET_OPTIONS}
+          value={money?.budgetBand}
+          onPick={(budgetBand) => updateMoneyProfile(householdId, tenantId, { budgetBand })}
+          busy={busy}
+        />
+        <SharpenRow
+          label="College savings so far"
+          payoff="tunes the aid estimate"
+          options={SAVINGS_OPTIONS}
+          value={money?.savings529Band}
+          onPick={(savings529Band) => updateMoneyProfile(householdId, tenantId, { savings529Band })}
           busy={busy}
         />
       </section>

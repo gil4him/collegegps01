@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useAuth } from "../auth/AuthProvider.jsx";
 import { signOut } from "../auth/account.js";
 import { subscribeChildren, subscribePlans } from "../lib/children.js";
+import { subscribeMoneyProfile } from "../lib/profiles.js";
 import { gradeFromGradYear } from "../engines/milestones/grade.js";
 import { verdictFor } from "../engines/verdict/verdict.js";
 import { STATES } from "../data/dataset.js";
@@ -80,6 +81,7 @@ export default function Home() {
   const { user, profile } = useAuth();
   const [children, setChildren] = useState(null);
   const [plans, setPlans] = useState({});
+  const [money, setMoney] = useState(null);
   const [adding, setAdding] = useState(false);
   const [view, setView] = useState({ name: "dashboard", childId: null });
   const householdId = profile?.householdId;
@@ -88,9 +90,11 @@ export default function Home() {
     if (!householdId) return undefined;
     const u1 = subscribeChildren(householdId, setChildren);
     const u2 = subscribePlans(householdId, setPlans);
+    const u3 = subscribeMoneyProfile(householdId, setMoney);
     return () => {
       u1();
       u2();
+      u3();
     };
   }, [householdId]);
 
@@ -134,6 +138,9 @@ export default function Home() {
           <ChildDetail
             child={selected}
             plan={plans[selected.id]}
+            money={money}
+            householdId={householdId}
+            tenantId={profile.tenantId || "default"}
             onBack={() => setView({ name: "dashboard", childId: null })}
             onRoad={() => setView({ name: "road", childId: selected.id })}
           />

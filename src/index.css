@@ -566,3 +566,32 @@ h1 {
   background: #f5f5f7;
   color: #6e6e73;
 }
+
+/* Affordability panel */
+.afford {
+  max-width: 620px;
+  border-top: 1px solid #e5e5ea;
+  padding-top: 24px;
+  margin-bottom: 32px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.afford-basis {
+  font-size: 0.8125rem;
+  color: #6e6e73;
+  background: #f5f5f7;
+  border-radius: 10px;
+  padding: 8px 12px;
+}
+
+.afford-range {
+  font-size: 0.9375rem;
+  line-height: 1.5;
+}
+
+.afford-fineprint {
+  font-size: 0.75rem;
+  color: #a1a1a6;
+}
