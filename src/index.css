@@ -718,3 +718,62 @@ h1 {
     gap: 14px;
   }
 }
+
+/* Language picker (pre-login) and topbar switcher */
+.lang-row {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 40px;
+}
+
+.lang {
+  font: inherit;
+  font-size: 0.8125rem;
+  padding: 5px 12px;
+  border-radius: 999px;
+  border: 1px solid transparent;
+  background: none;
+  color: #6e6e73;
+  cursor: pointer;
+}
+
+.lang:hover {
+  color: #1d1d1f;
+}
+
+.lang-active {
+  border-color: #d2d2d7;
+  background: #ffffff;
+  color: #1d1d1f;
+  font-weight: 600;
+}
+
+.lang:focus-visible {
+  outline: 2px solid #0071e3;
+  outline-offset: 2px;
+}
+
+.topbar-right {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.lang-select {
+  font: inherit;
+  font-size: 0.8125rem;
+  padding: 4px 8px;
+  border: 1px solid #e5e5ea;
+  border-radius: 8px;
+  background: #ffffff;
+  color: #6e6e73;
+}
+
+.translate-link {
+  font-size: 0.75rem;
+  color: #0071e3;
+  text-decoration: none;
+  white-space: nowrap;
+}

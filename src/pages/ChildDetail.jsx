@@ -7,22 +7,8 @@ import { INCOME_BANDS, BUDGET_BANDS } from "../engines/answers/answers.js";
 import { updateChildInputs } from "../lib/children.js";
 import { updateMoneyProfile } from "../lib/profiles.js";
 import { createClaimCode } from "../lib/claims.js";
-
-const INCOME_OPTIONS = INCOME_BANDS.map((b) => ({ value: b, label: b }));
-const BUDGET_OPTIONS = Object.keys(BUDGET_BANDS).map((b) => ({ value: b, label: b }));
-const SAVINGS_OPTIONS = Object.keys(SAVINGS_BANDS).map((b) => ({ value: b, label: b }));
-
-const GPA_BANDS = [
-  { value: "3.7plus", label: "3.7+" },
-  { value: "3.3to3.7", label: "3.3–3.7" },
-  { value: "3.0to3.3", label: "3.0–3.3" },
-  { value: "below3", label: "Below 3.0" },
-];
-const TEST_STATUS = [
-  { value: "notStarted", label: "Not started" },
-  { value: "registered", label: "Registered" },
-  { value: "done", label: "Done" },
-];
+import { useI18n } from "../i18n/index.jsx";
+import { bandLabel, localizePlan } from "../i18n/content.js";
 
 function SharpenRow({ label, payoff, options, value, onPick, busy }) {
   return (
@@ -52,37 +38,36 @@ function money$(n) {
 }
 
 function AffordabilityPanel({ child, money }) {
+  const { t } = useI18n();
   const a = useMemo(() => affordabilityFor(child, money), [child, money]);
   if (!a.available) return null;
   return (
     <section className="afford">
-      <h2 className="section-title">Affordability — {a.stateName}</h2>
-      {a.typical && (
-        <p className="afford-basis">Based on a typical {a.stateName} family — answer the money bands below to make this yours.</p>
-      )}
+      <h2 className="section-title">{t("afford.title", { state: a.stateName })}</h2>
+      {a.typical && <p className="afford-basis">{t("afford.typical", { state: a.stateName })}</p>}
       <p className="afford-range">
-        Net price at {a.schoolCount} in-state colleges:{" "}
+        {t("afford.netLabel", { n: a.schoolCount })}:{" "}
         <strong>
           {money$(a.netLow)}–{money$(a.netHigh)}
         </strong>{" "}
-        a year (median {money$(a.netMedian)}).
+        {t("afford.perYearMedian", { median: money$(a.netMedian) })}
       </p>
       {a.withinBudget != null && (
         <p className="afford-range">
-          Around your budget band: <strong>{a.withinBudget} of {a.schoolCount}</strong> in-state
-          colleges land at or under {money$(a.budgetMid)} a year.
+          {t("afford.budgetLabel", { amount: money$(a.budgetMid) })}:{" "}
+          <strong>{t("afford.budgetValue", { k: a.withinBudget, n: a.schoolCount })}</strong>
         </p>
       )}
       {a.sai && (
         <p className="afford-range">
-          Aid math: your Student Aid Index likely falls around{" "}
+          {t("afford.aidLabel")}:{" "}
           <strong>
             {money$(a.sai.low)}–{money$(a.sai.high)}
           </strong>
-          . Colleges use it to size aid — lower means more need-based help.
+          . {t("afford.aidNote")}
         </p>
       )}
-      <p className="afford-fineprint">Planning estimates from public IPEDS data — not financial advice.</p>
+      <p className="afford-fineprint">{t("afford.finePrint")}</p>
     </section>
   );
 }
@@ -90,15 +75,32 @@ function AffordabilityPanel({ child, money }) {
 // Card detail = the counselor's note (brief: NOT more widgets). Serif voice,
 // two actions, then the sharpen prompts with visible payoff.
 export default function ChildDetail({ child, plan, money, householdId, tenantId, onBack, onRoad }) {
+  const { locale, t } = useI18n();
   const now = new Date();
   const [busy, setBusy] = useState(false);
   const [claimCode, setClaimCode] = useState(null);
-  const v = useMemo(() => (plan ? verdictFor(plan, child, now) : null), [plan, child]);
+  const lPlan = useMemo(() => localizePlan(plan, locale), [plan, locale]);
+  const v = useMemo(() => (lPlan ? verdictFor(lPlan, child, now) : null), [lPlan, child]);
   const note = useMemo(
-    () => (plan && v ? counselorNote(child, plan, v, now) : null),
-    [plan, v, child]
+    () => (lPlan && v ? counselorNote(child, lPlan, v, now, locale) : null),
+    [lPlan, v, child, locale]
   );
   const grade = gradeFromGradYear(child.gradYear, now);
+
+  const GPA_BANDS = [
+    { value: "3.7plus", label: "3.7+" },
+    { value: "3.3to3.7", label: "3.3–3.7" },
+    { value: "3.0to3.3", label: "3.0–3.3" },
+    { value: "below3", label: "< 3.0" },
+  ];
+  const TEST_STATUS = [
+    { value: "notStarted", label: t("detail.notStarted") },
+    { value: "registered", label: t("detail.registered") },
+    { value: "done", label: t("detail.done") },
+  ];
+  const INCOME_OPTIONS = INCOME_BANDS.map((b) => ({ value: b, label: bandLabel(b, locale) }));
+  const BUDGET_OPTIONS = Object.keys(BUDGET_BANDS).map((b) => ({ value: b, label: bandLabel(b, locale) }));
+  const SAVINGS_OPTIONS = Object.keys(SAVINGS_BANDS).map((b) => ({ value: b, label: bandLabel(b, locale) }));
 
   async function sharpen(patch) {
     setBusy(true);
@@ -109,23 +111,31 @@ export default function ChildDetail({ child, plan, money, householdId, tenantId,
     }
   }
 
-  if (!plan || !v) return <p className="status status-checking">Loading…</p>;
+  if (!lPlan || !v) return <p className="status status-checking">{t("home.loading")}</p>;
+
+  const pill =
+    v.status === "onTrack"
+      ? t("home.onTrack")
+      : (() => {
+          const n = v.milestones.filter((m) => m.state === "overdue").length;
+          return n === 1 ? t("home.needsAttentionOne") : t("home.needsAttention", { n });
+        })();
 
   return (
     <div>
       <button className="linklike" onClick={onBack}>
-        ← All children
+        {t("detail.allChildren")}
       </button>
 
       <header className="detail-head">
         <h1>{child.nickname}</h1>
         <p className="child-grade">
-          Grade {grade} ·{" "}
-          <span className={v.status === "onTrack" ? "inline-ok" : "inline-warn"}>{v.pill}</span>
+          {t("home.grade", { n: grade })} ·{" "}
+          <span className={v.status === "onTrack" ? "inline-ok" : "inline-warn"}>{pill}</span>
         </p>
       </header>
 
-      <section className="note">
+      <section className="note" lang={locale}>
         {note.paragraphs.map((p, i) => (
           <p key={i}>{p}</p>
         ))}
@@ -133,53 +143,53 @@ export default function ChildDetail({ child, plan, money, householdId, tenantId,
 
       <div className="detail-actions">
         <button className="primary" onClick={() => onRoad(v.oneNextThing?.id)}>
-          Do this now
+          {t("detail.doThisNow")}
         </button>
         <button className="linklike" onClick={() => onRoad(null)}>
-          See the full road →
+          {t("detail.seeRoad")}
         </button>
       </div>
 
       <AffordabilityPanel child={child} money={money} />
 
       <section className="sharpen">
-        <h2 className="section-title">Sharpen this</h2>
-        <p className="sharpen-sub">Each answer updates {child.nickname}&rsquo;s road instantly.</p>
+        <h2 className="section-title">{t("detail.sharpenTitle")}</h2>
+        <p className="sharpen-sub">{t("detail.sharpenSub", { name: child.nickname })}</p>
         <SharpenRow
-          label="GPA band"
-          payoff="tunes what comes first"
+          label={t("detail.gpaBand")}
+          payoff={t("detail.gpaPayoff")}
           options={GPA_BANDS}
           value={child.gpaBand}
           onPick={(gpaBand) => sharpen({ gpaBand })}
           busy={busy}
         />
         <SharpenRow
-          label="SAT/ACT status"
-          payoff="adds or clears testing stops"
+          label={t("detail.testStatus")}
+          payoff={t("detail.testPayoff")}
           options={TEST_STATUS}
           value={child.testStatus}
           onPick={(testStatus) => sharpen({ testStatus })}
           busy={busy}
         />
         <SharpenRow
-          label="Household income band"
-          payoff="narrows the affordability range · shared across your children"
+          label={t("detail.income")}
+          payoff={t("detail.incomePayoff")}
           options={INCOME_OPTIONS}
           value={money?.incomeBand}
           onPick={(incomeBand) => updateMoneyProfile(householdId, tenantId, { incomeBand })}
           busy={busy}
         />
         <SharpenRow
-          label="What could you pay per year?"
-          payoff="shows how many colleges fit your budget"
+          label={t("detail.budget")}
+          payoff={t("detail.budgetPayoff")}
           options={BUDGET_OPTIONS}
           value={money?.budgetBand}
           onPick={(budgetBand) => updateMoneyProfile(householdId, tenantId, { budgetBand })}
           busy={busy}
         />
         <SharpenRow
-          label="College savings so far"
-          payoff="tunes the aid estimate"
+          label={t("detail.savings")}
+          payoff={t("detail.savingsPayoff")}
           options={SAVINGS_OPTIONS}
           value={money?.savings529Band}
           onPick={(savings529Band) => updateMoneyProfile(householdId, tenantId, { savings529Band })}
@@ -188,31 +198,24 @@ export default function ChildDetail({ child, plan, money, householdId, tenantId,
       </section>
 
       <section className="claim-section">
-        <h2 className="section-title">{child.nickname}&rsquo;s own view</h2>
+        <h2 className="section-title">{t("detail.ownView", { name: child.nickname })}</h2>
         {child.claimedByUid ? (
-          <p className="sharpen-sub">
-            Claimed — {child.nickname} sees their road and can refine academics.
-            Everything you entered is preserved.
-          </p>
+          <p className="sharpen-sub">{t("detail.claimed", { name: child.nickname })}</p>
         ) : claimCode ? (
           <p className="sharpen-sub">
-            Share this code with {child.nickname}: <strong className="claim-code">{claimCode}</strong>
+            {t("detail.shareCode", { name: child.nickname })}{" "}
+            <strong className="claim-code">{claimCode}</strong>
             <br />
-            They sign up as a Student, enter it, and get their own view of the
-            road. Nothing you&rsquo;ve entered is lost — and this card keeps
-            working for you either way.
+            {t("detail.shareCodeSub", { name: child.nickname })}
           </p>
         ) : (
           <>
-            <p className="sharpen-sub">
-              Optional: {child.nickname} can claim this card to see their own
-              milestones and refine academics. The card works fully without it.
-            </p>
+            <p className="sharpen-sub">{t("detail.claimOptional", { name: child.nickname })}</p>
             <button
               className="linklike"
               onClick={async () => setClaimCode(await createClaimCode(child, tenantId))}
             >
-              Invite {child.nickname} to claim their card →
+              {t("detail.invite", { name: child.nickname })}
             </button>
           </>
         )}

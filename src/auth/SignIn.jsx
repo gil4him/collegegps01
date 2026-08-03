@@ -1,10 +1,12 @@
 import { useState } from "react";
 import { signIn, signInWithGoogle, signUp, authErrorMessage } from "./account.js";
+import { LOCALES, useI18n } from "../i18n/index.jsx";
 
 // The one sign-in screen (brief §3): asks a single thing — Parent or Student —
-// plus email/password. Self-serve, no invitation anywhere. Companies and
-// counselors go to the mailto link.
+// plus email/password or Google. Language is chosen HERE, before login, and
+// remembered on the device.
 export default function SignIn() {
+  const { locale, setLocale, t } = useI18n();
   const [role, setRole] = useState("parent");
   const [mode, setMode] = useState("signup"); // "signup" | "signin"
   const [email, setEmail] = useState("");
@@ -21,7 +23,7 @@ export default function SignIn() {
       else await signIn(email.trim(), password);
       // AuthProvider picks up the session; App switches views.
     } catch (err) {
-      setError(authErrorMessage(err));
+      setError(authErrorMessage(err, t));
       setBusy(false);
     }
   }
@@ -32,25 +34,39 @@ export default function SignIn() {
     try {
       await signInWithGoogle(role);
     } catch (err) {
-      setError(authErrorMessage(err)); // null for a closed popup — no error shown
+      setError(authErrorMessage(err, t)); // null for a closed popup — no error shown
       setBusy(false);
     }
   }
 
   return (
     <main className="shell shell-narrow">
+      <nav className="lang-row" aria-label="Language">
+        {LOCALES.map((l) => (
+          <button
+            key={l.code}
+            className={locale === l.code ? "lang lang-active" : "lang"}
+            onClick={() => setLocale(l.code)}
+            aria-pressed={locale === l.code}
+            lang={l.code}
+          >
+            {l.native}
+          </button>
+        ))}
+      </nav>
+
       <h1>College GPS</h1>
-      <p className="tagline">You are here. Here&rsquo;s the next turn.</p>
+      <p className="tagline">{t("signin.tagline")}</p>
 
       <form className="card auth-card" onSubmit={submit}>
-        <div className="segmented" role="radiogroup" aria-label="I am a">
+        <div className="segmented" role="radiogroup" aria-label={`${t("signin.parent")} / ${t("signin.student")}`}>
           <button
             type="button"
             className={role === "parent" ? "seg seg-active" : "seg"}
             aria-pressed={role === "parent"}
             onClick={() => setRole("parent")}
           >
-            Parent
+            {t("signin.parent")}
           </button>
           <button
             type="button"
@@ -58,12 +74,12 @@ export default function SignIn() {
             aria-pressed={role === "student"}
             onClick={() => setRole("student")}
           >
-            Student
+            {t("signin.student")}
           </button>
         </div>
 
         <label className="field">
-          <span>Email</span>
+          <span>{t("signin.email")}</span>
           <input
             type="email"
             value={email}
@@ -73,7 +89,7 @@ export default function SignIn() {
           />
         </label>
         <label className="field">
-          <span>Password</span>
+          <span>{t("signin.password")}</span>
           <input
             type="password"
             value={password}
@@ -87,11 +103,11 @@ export default function SignIn() {
         {error && <p className="form-error">{error}</p>}
 
         <button className="primary" type="submit" disabled={busy}>
-          {busy ? "One moment…" : mode === "signup" ? "Create account" : "Sign in"}
+          {busy ? t("signin.busy") : mode === "signup" ? t("signin.create") : t("signin.signin")}
         </button>
 
         <div className="divider" aria-hidden="true">
-          <span>or</span>
+          <span>{t("signin.or")}</span>
         </div>
 
         <button type="button" className="google-btn" onClick={google} disabled={busy}>
@@ -101,7 +117,7 @@ export default function SignIn() {
             <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z" />
             <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z" />
           </svg>
-          Continue with Google
+          {t("signin.google")}
         </button>
 
         <button
@@ -112,14 +128,14 @@ export default function SignIn() {
             setError(null);
           }}
         >
-          {mode === "signup" ? "Already have an account? Sign in" : "New here? Create account"}
+          {mode === "signup" ? t("signin.haveAccount") : t("signin.newHere")}
         </button>
       </form>
 
       <p className="fineprint">
-        Company or counselor?{" "}
+        {t("signin.contactQ")}{" "}
         <a href="mailto:zymer4him@gmail.com?subject=College%20GPS%20for%20organizations">
-          Contact us →
+          {t("signin.contactCta")}
         </a>
       </p>
     </main>

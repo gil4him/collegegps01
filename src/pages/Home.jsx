@@ -6,6 +6,8 @@ import { subscribeMoneyProfile } from "../lib/profiles.js";
 import { gradeFromGradYear } from "../engines/milestones/grade.js";
 import { verdictFor } from "../engines/verdict/verdict.js";
 import { STATES } from "../data/dataset.js";
+import { LOCALES, prettyDate, useI18n } from "../i18n/index.jsx";
+import { localizePlan } from "../i18n/content.js";
 import AddChild from "./AddChild.jsx";
 import ChildDetail from "./ChildDetail.jsx";
 import RoadView from "./RoadView.jsx";
@@ -19,17 +21,43 @@ function accentFor(id) {
   return ACCENTS[h % ACCENTS.length];
 }
 
-function prettyDate(isoDay) {
-  return new Date(isoDay + "T12:00:00").toLocaleDateString(undefined, {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-  });
+function Topbar() {
+  const { locale, setLocale, t } = useI18n();
+  return (
+    <header className="topbar">
+      <span className="wordmark">College GPS</span>
+      <span className="topbar-right">
+        <select
+          className="lang-select"
+          value={locale}
+          onChange={(e) => setLocale(e.target.value)}
+          aria-label="Language"
+        >
+          {LOCALES.map((l) => (
+            <option key={l.code} value={l.code}>
+              {l.native}
+            </option>
+          ))}
+        </select>
+        <button className="linklike" onClick={signOut}>
+          {t("home.signOut")}
+        </button>
+      </span>
+    </header>
+  );
+}
+
+function pillFor(v, t) {
+  if (v.status === "onTrack") return t("home.onTrack");
+  const n = v.milestones.filter((m) => m.state === "overdue").length;
+  return n === 1 ? t("home.needsAttentionOne") : t("home.needsAttention", { n });
 }
 
 function ChildCard({ child, plan, onOpen }) {
+  const { locale, t } = useI18n();
   const now = new Date();
-  const v = useMemo(() => (plan ? verdictFor(plan, child, now) : null), [plan, child]);
+  const lPlan = useMemo(() => localizePlan(plan, locale), [plan, locale]);
+  const v = useMemo(() => (lPlan ? verdictFor(lPlan, child, now) : null), [lPlan, child]);
   const grade = gradeFromGradYear(child.gradYear, now);
   const next = v?.oneNextThing;
 
@@ -40,43 +68,41 @@ function ChildCard({ child, plan, onOpen }) {
       onClick={onOpen}
       role="button"
       tabIndex={0}
-      aria-label={`Open ${child.nickname}'s note`}
+      aria-label={t("home.openNote", { name: child.nickname })}
       onKeyDown={(e) => e.key === "Enter" && onOpen()}
     >
       <header className="child-head">
         <span className="avatar">{child.nickname.slice(0, 1).toUpperCase()}</span>
         <div>
           <h2 className="child-name">{child.nickname}</h2>
-          <p className="child-grade">Grade {grade ?? "—"}</p>
+          <p className="child-grade">{t("home.grade", { n: grade ?? "—" })}</p>
         </div>
         {v && (
           <span className={v.status === "onTrack" ? "pill pill-ok" : "pill pill-warn"}>
-            {v.pill}
+            {pillFor(v, t)}
           </span>
         )}
       </header>
 
-      <p className="chip">
-        Based on {STATES[child.state] || "state"} requirements
-      </p>
+      <p className="chip">{t("home.basedOn", { state: STATES[child.state] || child.state || "—" })}</p>
 
       {next ? (
         <div className="next-thing">
-          <p className="next-label">One next thing · {prettyDate(next.date)}</p>
+          <p className="next-label">{t("home.oneNextThing", { date: prettyDate(next.date, locale) })}</p>
           <p className="next-title">{next.title}</p>
           <p className="next-why">{next.why}</p>
         </div>
       ) : (
-        <p className="next-why">Building the road…</p>
+        <p className="next-why">{t("home.buildingRoad")}</p>
       )}
 
       {v && (
         <p className="card-foot">
-          {v.dueThisSemester} {v.dueThisSemester === 1 ? "thing" : "things"} this semester
+          {v.dueThisSemester === 1
+            ? t("home.thingSemester")
+            : t("home.thingsSemester", { n: v.dueThisSemester })}
           {v.dueSoon > 0 && (
-            <span className="card-alert">
-              {" "}· {v.dueSoon} approaching soon
-            </span>
+            <span className="card-alert"> {t("home.approachingSoon", { n: v.dueSoon })}</span>
           )}
         </p>
       )}
@@ -85,7 +111,8 @@ function ChildCard({ child, plan, onOpen }) {
 }
 
 export default function Home() {
-  const { user, profile } = useAuth();
+  const { profile } = useAuth();
+  const { t } = useI18n();
   const [children, setChildren] = useState(null);
   const [plans, setPlans] = useState({});
   const [money, setMoney] = useState(null);
@@ -108,12 +135,7 @@ export default function Home() {
   if (profile && profile.role === "student") {
     return (
       <main className="shell shell-wide">
-        <header className="topbar">
-          <span className="wordmark">College GPS</span>
-          <button className="linklike" onClick={signOut}>
-            Sign out
-          </button>
-        </header>
+        <Topbar />
         <StudentView children={children} plans={plans} />
       </main>
     );
@@ -125,12 +147,7 @@ export default function Home() {
   if (selected) {
     return (
       <main className="shell shell-wide">
-        <header className="topbar">
-          <span className="wordmark">College GPS</span>
-          <button className="linklike" onClick={signOut}>
-            Sign out
-          </button>
-        </header>
+        <Topbar />
         {view.name === "road" ? (
           <RoadView
             child={selected}
@@ -154,28 +171,21 @@ export default function Home() {
 
   return (
     <main className="shell shell-wide">
-      <header className="topbar">
-        <span className="wordmark">College GPS</span>
-        <button className="linklike" onClick={signOut}>
-          Sign out
-        </button>
-      </header>
+      <Topbar />
 
-      {!children && <p className="status status-checking">Loading…</p>}
+      {!children && <p className="status status-checking">{t("home.loading")}</p>}
 
       {empty && !adding && (
         <div className="empty-state">
-          <h1>Let&rsquo;s find where you are</h1>
-          <p className="tagline">
-            Two questions. Your child&rsquo;s road appears immediately.
-          </p>
+          <h1>{t("home.emptyTitle")}</h1>
+          <p className="tagline">{t("home.emptySub")}</p>
           <button className="primary" onClick={() => setAdding(true)}>
-            Add your child
+            {t("home.addChild")}
           </button>
         </div>
       )}
 
-      {(adding || (empty && adding)) && householdId && (
+      {adding && householdId && (
         <div className="modal-center">
           <AddChild
             householdId={householdId}
@@ -187,21 +197,19 @@ export default function Home() {
       )}
 
       {children && children.length > 0 && !adding && (
-        <>
-          <div className="cards-grid">
-            {children.map((c) => (
-              <ChildCard
-                key={c.id}
-                child={c}
-                plan={plans[c.id]}
-                onOpen={() => setView({ name: "detail", childId: c.id })}
-              />
-            ))}
-            <button className="add-card" onClick={() => setAdding(true)}>
-              + Add another child
-            </button>
-          </div>
-        </>
+        <div className="cards-grid">
+          {children.map((c) => (
+            <ChildCard
+              key={c.id}
+              child={c}
+              plan={plans[c.id]}
+              onOpen={() => setView({ name: "detail", childId: c.id })}
+            />
+          ))}
+          <button className="add-card" onClick={() => setAdding(true)}>
+            {t("home.addAnother")}
+          </button>
+        </div>
       )}
     </main>
   );

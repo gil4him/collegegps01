@@ -74,32 +74,32 @@ export function signOut() {
   return fbSignOut(auth);
 }
 
-// Plain-language error messages for the sign-in screen. Returns null for
-// benign cases (user closed the popup) that shouldn't show an error.
-export function authErrorMessage(err) {
+// Plain-language error messages for the sign-in screen, via the caller's
+// translator. Returns null for benign cases (user closed the popup).
+export function authErrorMessage(err, t) {
   switch (err && err.code) {
     case "auth/popup-closed-by-user":
     case "auth/cancelled-popup-request":
       return null;
     case "auth/popup-blocked":
-      return "Your browser blocked the sign-in window — allow popups and try again.";
+      return t("err.popupBlocked");
     case "auth/account-exists-with-different-credential":
-      return "This email already has a password account — sign in with email and password instead.";
+      return t("err.accountExists");
     case "auth/invalid-email":
-      return "That email address doesn't look right.";
+      return t("err.invalidEmail");
     case "auth/email-already-in-use":
-      return "There's already an account with this email — try signing in instead.";
+      return t("err.emailInUse");
     case "auth/weak-password":
-      return "Please use a password of at least 6 characters.";
+      return t("err.weakPassword");
     case "auth/invalid-credential":
     case "auth/wrong-password":
     case "auth/user-not-found":
-      return "Email or password didn't match. If you're new, choose “Create account.”";
+      return t("err.badCredentials");
     case "auth/too-many-requests":
-      return "Too many tries — wait a minute and try again.";
+      return t("err.tooMany");
     case "auth/operation-not-allowed":
-      return "This sign-in method isn't switched on for this project yet.";
+      return t("err.notEnabled");
     default:
-      return "Something went wrong. Please try again.";
+      return t("err.generic");
   }
 }
