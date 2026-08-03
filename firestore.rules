@@ -1,0 +1,27 @@
+rules_version = '2';
+
+// Slice 1 skeleton: default-deny everything. Real per-collection rules land
+// in Slice 3 (auth + access model), following the collegeapp01 pattern:
+//   - superadmin: full access (email zymer4him@gmail.com or role claim)
+//   - admin: only docs whose tenantId matches their claim
+//   - parent/student: only their own user doc + their household's docs
+// GPS-specific: plans/{childId} and alerts/{childId} will carry denormalized
+// householdId + tenantId so rules never need get() joins.
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isSuperadmin() {
+      return isSignedIn() &&
+        (request.auth.token.email == 'zymer4him@gmail.com' ||
+         request.auth.token.role == 'superadmin');
+    }
+
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
