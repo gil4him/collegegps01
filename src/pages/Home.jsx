@@ -6,6 +6,8 @@ import { gradeFromGradYear } from "../engines/milestones/grade.js";
 import { verdictFor } from "../engines/verdict/verdict.js";
 import { STATES } from "../data/dataset.js";
 import AddChild from "./AddChild.jsx";
+import ChildDetail from "./ChildDetail.jsx";
+import RoadView from "./RoadView.jsx";
 
 // Stable per-child accent colors (brief: each child gets a stable accent).
 const ACCENTS = ["#0071e3", "#af52de", "#ff9500", "#34c759", "#ff2d55", "#5ac8fa"];
@@ -23,14 +25,21 @@ function prettyDate(isoDay) {
   });
 }
 
-function ChildCard({ child, plan }) {
+function ChildCard({ child, plan, onOpen }) {
   const now = new Date();
   const v = useMemo(() => (plan ? verdictFor(plan, child, now) : null), [plan, child]);
   const grade = gradeFromGradYear(child.gradYear, now);
   const next = v?.oneNextThing;
 
   return (
-    <article className="child-card" style={{ "--accent": accentFor(child.id) }}>
+    <article
+      className="child-card child-card-tappable"
+      style={{ "--accent": accentFor(child.id) }}
+      onClick={onOpen}
+      role="button"
+      tabIndex={0}
+      onKeyDown={(e) => e.key === "Enter" && onOpen()}
+    >
       <header className="child-head">
         <span className="avatar">{child.nickname.slice(0, 1).toUpperCase()}</span>
         <div>
@@ -72,6 +81,7 @@ export default function Home() {
   const [children, setChildren] = useState(null);
   const [plans, setPlans] = useState({});
   const [adding, setAdding] = useState(false);
+  const [view, setView] = useState({ name: "dashboard", childId: null });
   const householdId = profile?.householdId;
 
   useEffect(() => {
@@ -103,6 +113,34 @@ export default function Home() {
   }
 
   const empty = children && children.length === 0;
+  const selected = view.childId && children?.find((c) => c.id === view.childId);
+
+  if (selected) {
+    return (
+      <main className="shell shell-wide">
+        <header className="topbar">
+          <span className="wordmark">College GPS</span>
+          <button className="linklike" onClick={signOut}>
+            Sign out
+          </button>
+        </header>
+        {view.name === "road" ? (
+          <RoadView
+            child={selected}
+            plan={plans[selected.id]}
+            onBack={() => setView({ name: "detail", childId: selected.id })}
+          />
+        ) : (
+          <ChildDetail
+            child={selected}
+            plan={plans[selected.id]}
+            onBack={() => setView({ name: "dashboard", childId: null })}
+            onRoad={() => setView({ name: "road", childId: selected.id })}
+          />
+        )}
+      </main>
+    );
+  }
 
   return (
     <main className="shell shell-wide">
@@ -142,7 +180,12 @@ export default function Home() {
         <>
           <div className="cards-grid">
             {children.map((c) => (
-              <ChildCard key={c.id} child={c} plan={plans[c.id]} />
+              <ChildCard
+                key={c.id}
+                child={c}
+                plan={plans[c.id]}
+                onOpen={() => setView({ name: "detail", childId: c.id })}
+              />
             ))}
             <button className="add-card" onClick={() => setAdding(true)}>
               + Add another child

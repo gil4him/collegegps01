@@ -337,3 +337,232 @@ h1 {
 .add-card:hover {
   border-color: #0071e3;
 }
+
+.child-card-tappable {
+  cursor: pointer;
+  transition: box-shadow 0.15s ease, transform 0.15s ease;
+}
+
+.child-card-tappable:hover {
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.07);
+  transform: translateY(-1px);
+}
+
+.detail-head {
+  margin: 24px 0;
+}
+
+.detail-head h1 {
+  font-size: 2rem;
+}
+
+.inline-ok {
+  color: #1a7f37;
+  font-weight: 600;
+}
+
+.inline-warn {
+  color: #b25e09;
+  font-weight: 600;
+}
+
+/* The counselor's note — the ONLY serif surface. It is the product's voice. */
+.note {
+  max-width: 620px;
+  font-family: "New York", "Iowan Old Style", Georgia, "Times New Roman", serif;
+  font-size: 1.1875rem;
+  line-height: 1.65;
+  color: #1d1d1f;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  margin: 28px 0;
+}
+
+.detail-actions {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  margin: 28px 0 44px;
+}
+
+.detail-actions .primary {
+  padding: 12px 24px;
+}
+
+.section-title {
+  font-size: 1.0625rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+.sharpen {
+  max-width: 620px;
+  border-top: 1px solid #e5e5ea;
+  padding-top: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.sharpen-sub {
+  font-size: 0.875rem;
+  color: #6e6e73;
+  margin-top: -10px;
+}
+
+.sharpen-head {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+.sharpen-label {
+  font-weight: 600;
+  font-size: 0.9375rem;
+}
+
+.sharpen-payoff {
+  font-size: 0.8125rem;
+  color: #6e6e73;
+}
+
+.sharpen-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.chip-btn {
+  font: inherit;
+  font-size: 0.875rem;
+  padding: 7px 14px;
+  border-radius: 999px;
+  border: 1px solid #d2d2d7;
+  background: #ffffff;
+  color: #1d1d1f;
+  cursor: pointer;
+}
+
+.chip-btn-active {
+  background: #0071e3;
+  border-color: #0071e3;
+  color: #ffffff;
+  font-weight: 600;
+}
+
+/* The road — turn-by-turn route */
+.road {
+  list-style: none;
+  max-width: 620px;
+  margin-top: 8px;
+}
+
+.stop {
+  position: relative;
+  padding: 0 0 28px 32px;
+  border-left: 2px solid #e5e5ea;
+  margin-left: 8px;
+}
+
+.stop:last-child {
+  border-left-color: transparent;
+}
+
+.stop-marker {
+  position: absolute;
+  left: -8px;
+  top: 2px;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: #ffffff;
+  border: 2px solid #c7c7cc;
+}
+
+.stop-done .stop-marker {
+  background: #1a7f37;
+  border-color: #1a7f37;
+}
+
+.stop-next .stop-marker {
+  border-color: #0071e3;
+  box-shadow: 0 0 0 4px rgba(0, 113, 227, 0.18);
+}
+
+.stop-overdue .stop-marker {
+  border-color: #b25e09;
+  background: #fff4e5;
+}
+
+.stop-catchup {
+  opacity: 0.75;
+}
+
+.stop-done .stop-title,
+.stop-done .stop-why {
+  color: #a1a1a6;
+  text-decoration: line-through;
+}
+
+.stop-date {
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #6e6e73;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.stop-title {
+  margin-top: 4px;
+  font-weight: 600;
+  line-height: 1.35;
+}
+
+.stop-why {
+  margin-top: 3px;
+  font-size: 0.875rem;
+  color: #6e6e73;
+  line-height: 1.45;
+}
+
+.stop-toggle {
+  margin-top: 6px;
+  font-size: 0.8125rem;
+}
+
+.tag {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  text-transform: none;
+  letter-spacing: 0;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: #f5f5f7;
+  color: #6e6e73;
+}
+
+.tag-financial {
+  background: #e8f2e8;
+  color: #1a7f37;
+}
+
+.tag-testing {
+  background: #eef2fd;
+  color: #3634a3;
+}
+
+.tag-next {
+  background: #0071e3;
+  color: #ffffff;
+}
+
+.tag-catchup {
+  background: #f5f5f7;
+  color: #6e6e73;
+}

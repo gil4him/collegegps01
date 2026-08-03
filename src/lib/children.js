@@ -4,6 +4,7 @@ import {
   onSnapshot,
   query,
   serverTimestamp,
+  updateDoc,
   where,
   writeBatch,
 } from "firebase/firestore";
@@ -62,6 +63,32 @@ function subscribeWithRetry(q, onData) {
     if (unsub) unsub();
     if (timer) clearTimeout(timer);
   };
+}
+
+// A "sharpen this" answer changed the child's inputs: save the patch and
+// regenerate the plan in one batch, preserving any done marks by milestone
+// id. Deterministic: inputsHash changes, milestones re-derive.
+export async function updateChildInputs(child, oldPlan, patch, now) {
+  const updated = { ...child, ...patch };
+  const plan = generatePlan(updated, now);
+  const doneIds = new Set(
+    (oldPlan?.milestones || []).filter((m) => m.status === "done").map((m) => m.id)
+  );
+  plan.milestones = plan.milestones.map((m) =>
+    doneIds.has(m.id) ? { ...m, status: "done" } : m
+  );
+  const batch = writeBatch(db);
+  batch.update(doc(db, "children", child.id), patch);
+  batch.update(doc(db, "plans", child.id), { ...plan, generatedAt: serverTimestamp() });
+  await batch.commit();
+}
+
+// Mark a stop done (or not) on the stored plan.
+export async function setMilestoneStatus(childId, plan, milestoneId, status) {
+  const milestones = plan.milestones.map((m) =>
+    m.id === milestoneId ? { ...m, status } : m
+  );
+  await updateDoc(doc(db, "plans", childId), { milestones });
 }
 
 export function subscribeChildren(householdId, cb) {

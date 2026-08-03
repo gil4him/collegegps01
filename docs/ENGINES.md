@@ -74,9 +74,35 @@ each file's header.
 - **`recognitionTiers.json` / `nationalRank.json`** — data behind the fit
   helpers above.
 
-## What is NOT here (greenfield, per the extraction doc)
+## `src/engines/verdict/` — the GPS core (greenfield, built in Slice 4)
 
-The dated milestone playbook, the verdict + One Next Thing engine, the
-counselor-note templates, and the ZIP→district resolver. See
+- **`verdict.js`** (`verdict-v1`, content year-stamped 2026–27) —
+  `generatePlan(child, now)` builds the dated remaining-years plan: seed
+  milestones dated by school-year window, plus real financial anchors (money
+  checkpoint, FAFSA base year via the finaid engine, Oct 1 FAFSA open, PSAT
+  windows). `verdictFor(plan, child, now)` computes On-track/Needs-attention
+  with the cold-start catch-up policy, the One Next Thing, and per-stop
+  states. Refinements differentiate: `testStatus: "done"` clears testing
+  stops; a low GPA band pulls academics forward on date ties.
+
+## `src/engines/districts/` — location resolution (greenfield)
+
+- **`zipState.js`** — ZIP→state from real USPS prefix ranges;
+  `resolveDistrict` is the honest no-data interface the future NCES-EDGE
+  resolver plugs into (state rules are the reliable floor, never blocked).
+
+## `src/engines/notes/` — the counselor's note (greenfield, built in Slice 5)
+
+- **`notes.js`** (`notes-v1`) — `counselorNote(child, plan, verdict, now)` →
+  2–3 deterministic paragraphs in the product's voice: verdict-first relief,
+  the next turn with its why, and the quiet money note (base-year window,
+  FAFSA timing). The only serif surface. Editorial content — owner reviews
+  tone.
+
+## What is still NOT here (greenfield remaining)
+
+District-backed plan sharpening (needs an NCES data pipeline), the
+affordability range from budget/income bands (Slice 6, via the fit/finaid
+engines), and student-claim flows (Slice 7). See
 `docs/claude-code-prompt_collegegps01-build.md` Part 2 and the extraction doc
 in collegeapp01 for the plan.
