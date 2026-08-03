@@ -24,7 +24,13 @@ export function AuthProvider({ children }) {
       }
       unsubProfile = onSnapshot(
         doc(db, "users", user.uid),
-        (snap) => setState({ user, profile: snap.exists() ? snap.data() : null, loading: false }),
+        (snap) => {
+          // Ignore latency-compensated snapshots of our own pending signup
+          // batch: the profile must only appear once the server has the
+          // household too, or the dashboard queries race the rules' get().
+          if (snap.metadata.hasPendingWrites) return;
+          setState({ user, profile: snap.exists() ? snap.data() : null, loading: false });
+        },
         () => setState({ user, profile: null, loading: false })
       );
     });

@@ -43,14 +43,35 @@ export async function addChild({ nickname, grade, zip }, householdId, tenantId, 
   return childRef.id;
 }
 
+// A Firestore listener that errors (e.g. a transient permission race right
+// after signup) is dead — it never retries on its own. Wrap with a retry so
+// the dashboard can't be stranded on "Loading…".
+function subscribeWithRetry(q, onData) {
+  let unsub = null;
+  let timer = null;
+  let cancelled = false;
+  const start = () => {
+    unsub = onSnapshot(q, onData, (err) => {
+      console.warn("listener error, retrying:", err.code);
+      if (!cancelled) timer = setTimeout(start, 1500);
+    });
+  };
+  start();
+  return () => {
+    cancelled = true;
+    if (unsub) unsub();
+    if (timer) clearTimeout(timer);
+  };
+}
+
 export function subscribeChildren(householdId, cb) {
   const q = query(collection(db, "children"), where("householdId", "==", householdId));
-  return onSnapshot(q, (snap) => cb(snap.docs.map((d) => ({ id: d.id, ...d.data() }))));
+  return subscribeWithRetry(q, (snap) => cb(snap.docs.map((d) => ({ id: d.id, ...d.data() }))));
 }
 
 export function subscribePlans(householdId, cb) {
   const q = query(collection(db, "plans"), where("householdId", "==", householdId));
-  return onSnapshot(q, (snap) => {
+  return subscribeWithRetry(q, (snap) => {
     const byChildId = {};
     snap.docs.forEach((d) => (byChildId[d.id] = d.data()));
     cb(byChildId);
