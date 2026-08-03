@@ -9,6 +9,7 @@ import { STATES } from "../data/dataset.js";
 import AddChild from "./AddChild.jsx";
 import ChildDetail from "./ChildDetail.jsx";
 import RoadView from "./RoadView.jsx";
+import StudentView from "./StudentView.jsx";
 
 // Stable per-child accent colors (brief: each child gets a stable accent).
 const ACCENTS = ["#0071e3", "#af52de", "#ff9500", "#34c759", "#ff2d55", "#5ac8fa"];
@@ -71,6 +72,11 @@ function ChildCard({ child, plan, onOpen }) {
       {v && (
         <p className="card-foot">
           {v.dueThisSemester} {v.dueThisSemester === 1 ? "thing" : "things"} this semester
+          {v.dueSoon > 0 && (
+            <span className="card-alert">
+              {" "}· {v.dueSoon} approaching soon
+            </span>
+          )}
         </p>
       )}
     </article>
@@ -100,18 +106,14 @@ export default function Home() {
 
   if (profile && profile.role === "student") {
     return (
-      <main className="shell">
+      <main className="shell shell-wide">
         <header className="topbar">
           <span className="wordmark">College GPS</span>
           <button className="linklike" onClick={signOut}>
             Sign out
           </button>
         </header>
-        <h1>Welcome</h1>
-        <p className="tagline">
-          Your view opens when you claim your card — ask your parent to invite
-          you, or check back soon.
-        </p>
+        <StudentView children={children} plans={plans} />
       </main>
     );
   }

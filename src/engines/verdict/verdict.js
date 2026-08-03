@@ -182,12 +182,17 @@ export function verdictFor(plan, child, now) {
   const dueThisSemester = ms.filter(
     (m) => (m.state === "upcoming" || m.state === "overdue") && m.date <= semesterEnd
   ).length;
+  // The card's alert line (brief §6, computed on load): stops coming due in
+  // the next two weeks.
+  const soonCutoff = new Date(now.getTime() + 14 * 86400000).toISOString().slice(0, 10);
+  const dueSoon = upcoming.filter((m) => m.date <= soonCutoff).length + overdue.length;
   return {
     status: overdue.length ? "needsAttention" : "onTrack",
     pill: overdue.length
       ? `${overdue.length} ${overdue.length === 1 ? "thing needs" : "things need"} attention`
       : "On track",
     dueThisSemester,
+    dueSoon,
     oneNextThing,
     milestones: ms,
   };

@@ -42,6 +42,19 @@ service cloud.firestore {
       allow delete: if isSuperadmin();
     }
 
+    // A student redeeming a claim code may append EXACTLY themselves to
+    // studentUids. Validity chain: their claims/{uid} doc names a code, and
+    // claimCodes/{code} (parent-created) must point at this household.
+    function isValidSelfClaim(householdId) {
+      return isSignedIn()
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['studentUids'])
+        && request.resource.data.studentUids.size() == resource.data.studentUids.size() + 1
+        && request.resource.data.studentUids.hasAll(resource.data.studentUids)
+        && request.auth.uid in request.resource.data.studentUids
+        && !(request.auth.uid in resource.data.studentUids)
+        && get(/databases/$(database)/documents/claimCodes/$(get(/databases/$(database)/documents/claims/$(request.auth.uid)).data.code)).data.householdId == householdId;
+    }
+
     // households/{householdId} — readable/writable by members only.
     match /households/{householdId} {
       allow read: if isSuperadmin()
@@ -57,7 +70,27 @@ service cloud.firestore {
         || (isSignedIn()
           && (request.auth.uid in resource.data.parentUids
             || request.auth.uid in resource.data.studentUids)
-          && request.resource.data.tenantId == resource.data.tenantId);
+          && request.resource.data.tenantId == resource.data.tenantId)
+        || isValidSelfClaim(householdId);
+      allow delete: if isSuperadmin();
+    }
+
+    // claimCodes/{code} — parent-minted invitations for a student to claim a
+    // child's card. The code itself is the secret; reading requires knowing
+    // it (no listing). Post-login only, optional (brief §3).
+    match /claimCodes/{code} {
+      allow get: if isSignedIn();
+      allow list: if isSuperadmin();
+      allow create: if isSignedIn()
+        && request.resource.data.tenantId == 'default'
+        && isMemberOf(request.resource.data.householdId);
+      allow delete: if isSuperadmin() || isMemberOf(resource.data.householdId);
+    }
+
+    // claims/{uid} — the student's own claim record naming the code they
+    // redeemed; referenced by isValidSelfClaim.
+    match /claims/{uid} {
+      allow read, create, update: if isSelf(uid) || isSuperadmin();
       allow delete: if isSuperadmin();
     }
 

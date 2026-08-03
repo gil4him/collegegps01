@@ -22,12 +22,17 @@ export function AuthProvider({ children }) {
         setState({ user: null, profile: null, loading: false });
         return;
       }
+      // includeMetadataChanges so the server-ack snapshot (a metadata-only
+      // change after our own local write) still fires — without it, a
+      // skipped pending-write snapshot is never followed up and the profile
+      // stalls (seen on student claim).
       unsubProfile = onSnapshot(
         doc(db, "users", user.uid),
+        { includeMetadataChanges: true },
         (snap) => {
-          // Ignore latency-compensated snapshots of our own pending signup
-          // batch: the profile must only appear once the server has the
-          // household too, or the dashboard queries race the rules' get().
+          // Ignore latency-compensated snapshots of our own pending writes:
+          // the profile must only appear once the server has the related
+          // docs too, or the dashboard queries race the rules' get().
           if (snap.metadata.hasPendingWrites) return;
           setState({ user, profile: snap.exists() ? snap.data() : null, loading: false });
         },

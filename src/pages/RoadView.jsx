@@ -28,9 +28,11 @@ export default function RoadView({ child, plan, onBack }) {
 
   return (
     <div>
-      <button className="linklike" onClick={onBack}>
-        ← {child.nickname}&rsquo;s note
-      </button>
+      {onBack && (
+        <button className="linklike" onClick={onBack}>
+          ← {child.nickname}&rsquo;s note
+        </button>
+      )}
 
       <header className="detail-head">
         <h1>The road ahead</h1>

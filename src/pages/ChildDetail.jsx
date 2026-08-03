@@ -6,6 +6,7 @@ import { affordabilityFor, SAVINGS_BANDS } from "../engines/affordability/afford
 import { INCOME_BANDS, BUDGET_BANDS } from "../engines/answers/answers.js";
 import { updateChildInputs } from "../lib/children.js";
 import { updateMoneyProfile } from "../lib/profiles.js";
+import { createClaimCode } from "../lib/claims.js";
 
 const INCOME_OPTIONS = INCOME_BANDS.map((b) => ({ value: b, label: b }));
 const BUDGET_OPTIONS = Object.keys(BUDGET_BANDS).map((b) => ({ value: b, label: b }));
@@ -91,6 +92,7 @@ function AffordabilityPanel({ child, money }) {
 export default function ChildDetail({ child, plan, money, householdId, tenantId, onBack, onRoad }) {
   const now = new Date();
   const [busy, setBusy] = useState(false);
+  const [claimCode, setClaimCode] = useState(null);
   const v = useMemo(() => (plan ? verdictFor(plan, child, now) : null), [plan, child]);
   const note = useMemo(
     () => (plan && v ? counselorNote(child, plan, v, now) : null),
@@ -183,6 +185,37 @@ export default function ChildDetail({ child, plan, money, householdId, tenantId,
           onPick={(savings529Band) => updateMoneyProfile(householdId, tenantId, { savings529Band })}
           busy={busy}
         />
+      </section>
+
+      <section className="claim-section">
+        <h2 className="section-title">{child.nickname}&rsquo;s own view</h2>
+        {child.claimedByUid ? (
+          <p className="sharpen-sub">
+            Claimed — {child.nickname} sees their road and can refine academics.
+            Everything you entered is preserved.
+          </p>
+        ) : claimCode ? (
+          <p className="sharpen-sub">
+            Share this code with {child.nickname}: <strong className="claim-code">{claimCode}</strong>
+            <br />
+            They sign up as a Student, enter it, and get their own view of the
+            road. Nothing you&rsquo;ve entered is lost — and this card keeps
+            working for you either way.
+          </p>
+        ) : (
+          <>
+            <p className="sharpen-sub">
+              Optional: {child.nickname} can claim this card to see their own
+              milestones and refine academics. The card works fully without it.
+            </p>
+            <button
+              className="linklike"
+              onClick={async () => setClaimCode(await createClaimCode(child, tenantId))}
+            >
+              Invite {child.nickname} to claim their card →
+            </button>
+          </>
+        )}
       </section>
     </div>
   );
