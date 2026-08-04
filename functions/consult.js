@@ -42,7 +42,11 @@ RULES:
 - Keep proper nouns in English (FAFSA, SAT, PSAT, AP/IB, National Merit, college and state names) regardless of the response language.
 - Tone: plain language, direct, never alarmist. Relief first, then direction. Short paragraphs.
 - You are educational, not a licensed advisor: frame money topics as planning estimates, never investment advice.
-- Alongside your answer, work like a consultant: record NEW facts the parent just told you as memos; convert facts that match a profile field into profilePatches (exact enum values only); leave concrete action items as todos (only when genuinely useful — do not manufacture busywork); and if ONE missing detail would most sharpen your advice, ask for it as a single gentle followUp question. Never ask more than one question. Do not repeat todos that already exist in the notebook's open list, and do not add memos for facts the notebook already records.` +
+- Alongside your answer, work like a consultant. This part is not optional:
+  • memos — record any NEW fact the parent states (a score, an activity, a preference, a constraint) as a short sentence, unless the notebook already records it.
+  • profilePatches — whenever the parent states a value that maps to a field, you MUST emit a patch with the exact enum value: a GPA → gpaBand (3.7plus / 3.3to3.7 / 3.0to3.3 / below3, e.g. "3.4" → "3.3to3.7"); test progress → testStatus (notStarted / registered / done); household income → incomeBand; yearly budget → budgetBand; college savings → savings529Band. For childId use the "(id ...)" shown next to the child in the notebook; if unsure, omit it and it defaults to the child in focus.
+  • todos — concrete action items, only when genuinely useful (never busywork), and never a duplicate of the notebook's open list.
+  • followUp — if ONE missing detail would most sharpen your advice, ask for it as a single gentle question. Never more than one.` +
     wall
   );
 }
@@ -187,12 +191,26 @@ function buildNotebook(data, question) {
 
 // ---- response validation (defense in depth) ----
 // Returns a cleaned {memos, patches, todos}; silently drops anything invalid.
+// ctx.focusChildId: the child the bubble is focused on (if any). Child-scoped
+// effects whose model-supplied childId doesn't resolve fall back to it — the
+// model shouldn't have to echo an opaque Firestore id perfectly.
 function validateEffects(parsed, ctx) {
   const childIds = new Set(ctx.children.map((c) => c.id));
+  const focus = childIds.has(ctx.focusChildId) ? ctx.focusChildId : null;
+  const onlyChild = ctx.children.length === 1 ? ctx.children[0].id : null;
+  // Resolve a model-supplied childId to a real one: exact match → itself;
+  // otherwise the focused child, otherwise the sole child, otherwise null.
+  const resolveChild = (id) => (childIds.has(id) ? id : focus || onlyChild || null);
+  const canTouchChild = (id) => {
+    if (ctx.role !== "student" || !ctx.studentUid) return true;
+    const child = ctx.children.find((c) => c.id === id);
+    return child && child.claimedByUid === ctx.studentUid;
+  };
+
   const memos = (parsed.memos || [])
     .filter((m) => m && typeof m.text === "string" && m.text.trim().length > 2)
     .slice(0, 6)
-    .map((m) => ({ text: m.text.trim().slice(0, 500), childId: childIds.has(m.childId) ? m.childId : null }));
+    .map((m) => ({ text: m.text.trim().slice(0, 500), childId: resolveChild(m.childId) }));
 
   const patches = [];
   for (const p of parsed.profilePatches || []) {
@@ -202,12 +220,9 @@ function validateEffects(parsed, ctx) {
       if (ctx.role === "student") continue; // students never touch money
       patches.push({ target: "profile", field: p.field, value: p.value });
     } else if (CHILD_FIELDS.has(p.field)) {
-      if (!childIds.has(p.childId)) continue;
-      if (ctx.role === "student" && ctx.studentUid) {
-        const child = ctx.children.find((c) => c.id === p.childId);
-        if (!child || child.claimedByUid !== ctx.studentUid) continue;
-      }
-      patches.push({ target: "child", childId: p.childId, field: p.field, value: p.value });
+      const childId = resolveChild(p.childId);
+      if (!childId || !canTouchChild(childId)) continue;
+      patches.push({ target: "child", childId, field: p.field, value: p.value });
     }
   }
 
@@ -215,7 +230,7 @@ function validateEffects(parsed, ctx) {
     .filter((t) => t && typeof t.title === "string" && t.title.trim().length > 2)
     .slice(0, 4)
     .map((t) => ({
-      childId: childIds.has(t.childId) ? t.childId : null,
+      childId: childIds.has(t.childId) ? t.childId : focus,
       title: t.title.trim().slice(0, 140),
       why: typeof t.why === "string" ? t.why.trim().slice(0, 300) : "",
       dueDate: typeof t.dueDate === "string" && /^\d{4}-\d{2}-\d{2}$/.test(t.dueDate) ? t.dueDate : null,

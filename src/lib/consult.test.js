@@ -87,6 +87,20 @@ describe("effect validation (whitelist, wall, caps)", () => {
     expect(v.patches).toEqual([{ target: "child", childId: "c1", field: "testStatus", value: "done" }]);
   });
 
+  test("child-scoped effects fall back to the focused child when id doesn't resolve", () => {
+    const v = validateEffects(
+      {
+        memos: [{ text: "Scored ~1300 on the SAT", childId: "Maya" }],
+        profilePatches: [{ childId: "Maya", field: "gpaBand", value: "3.3to3.7" }],
+        todos: [{ childId: "wrong", title: "Draft the main essay", why: "", dueDate: null }],
+      },
+      { children: CHILDREN, role: "parent", studentUid: null, focusChildId: "c1" }
+    );
+    expect(v.patches).toEqual([{ target: "child", childId: "c1", field: "gpaBand", value: "3.3to3.7" }]);
+    expect(v.memos[0].childId).toBe("c1");
+    expect(v.todos[0].childId).toBe("c1");
+  });
+
   test("todos are capped, trimmed, and date-validated", () => {
     const v = validateEffects(
       {

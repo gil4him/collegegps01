@@ -132,7 +132,12 @@ exports.askConsult = onCall(
     } catch {
       parsed = { answer: raw, followUp: null, memos: [], profilePatches: [], todos: [] };
     }
-    const effects = consult.validateEffects(parsed, { children, role, studentUid: role === "student" ? uid : null });
+    const effects = consult.validateEffects(parsed, {
+      children,
+      role,
+      studentUid: role === "student" ? uid : null,
+      focusChildId,
+    });
     const answerText =
       (parsed.answer || "").trim() +
       (parsed.followUp && typeof parsed.followUp === "string" ? `\n\n${parsed.followUp.trim()}` : "");
